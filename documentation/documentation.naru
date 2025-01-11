@@ -1,0 +1,174 @@
+#[ Title ] : [ Naru ]
+
++ [ Paragraph ]
+and connect to block
+[
+	[ Naru é um formato de marcação ]
+]
+
++ [ Paragraph ]
+and connect to block
+[
+	[ É uma rede de neurônios. Um neurônio consiste em uma idéia (um texto) e uma série de referências a outros neurônios. Cada referência tem um ou mais nomes. Um nome está associado a apenas uma referência. ]
+]
+
+[ Paragraph ]
+~~
+[
+	[ Exemplo: ]
+]
+
++ [ Block ]
+~~
+[
+	[ Paragraph ]
+	~~
+	|[
+		[ Title ] --> [ Algum título ]
+
+		[ Paragraph ]
+		~~
+		[
+			[ Algum texto ]
+		]
+
+		[ Paragraph ]
+		~~
+		[
+			[ Mais texto em outro parágrafo. ]
+
+			[ Texto em negrito no mesmo parágrafo. ]
+			~~ [ Style ] ~~ [ [ Bold ] ]
+
+			[ Texto em itálico no mesmo parágrafo. ]
+			~~ [ Style ] ~~ [ [ Italic ] ]
+
+			[ Texto em negrito e itálico no mesmo parágrafo ]
+			~~ [ Style ] ~~ [ [ Bold ] [ Italic ] ]
+		]
+
+		[ Paragraph ]
+		~~
+		[
+			[ Uma lista qualquer: ]
+		]
+
+		[ List ]
+		~~
+		[
+			[ Paragraph ]
+			~~
+			[
+				[ Item 1 ]
+			]
+
+			[ Paragraph ]
+			~~
+			[
+				[ Item 2 ]
+			]
+
+			[ Paragraph ]
+			~~
+			[
+				[ Item 3 ]
+			]
+		]
+	]|
+]
+
++ [ Section ]
+~
+:[
+	+ [ Title ]
+	~
+	[ + [ Idéia ] ]
+
+	+ [ Paragraph ]
+	~
+	:[
+		+ [ Espera que a última pilha de commando tenha um elemento apenas, uma idéia. Cria um neurônio com idéia [ Idéia ] e atribui a ele apenas o nome equivalente à sua posição (essa atribuição sempre ocorre, mesmo se já houver um nome explícito), depois coloca esse nome como elemento da pilha de comando ]
+	]:
+]:
+
++ [ Section ]
+~
+:[
+	+ [ Title ]
+	~ [ [ Nome ] --> [ Idéia ] ]|
+
+	+ [ Paragraph ]
+	~
+	:[
+		+ [ Cria um neurônio com idéia [ Idéia ] e atribui a ele o nome [ Nome ] ]
+	]:
+]:
+
+[ Section ]
+~~
+[
+	/[
+		@[ [ Nome 1 ] --> [ Nome 2 ] --> [ Nome 3 ] ]@
+	]/
+
+	[ Paragraph ]
+	~~
+	[
+		[ Se há apenas um nome, retorna o neurônio desse nome ]
+	]
+
+	[ Paragraph ]
+	~~
+	[
+		[ Se há mais de um nome, corresponde ao neurônio referenciado pelo último nome. [ Nome 1 ] existe dentro do neurônio atual. [ Nome 2 ] existe dentro do neurônio com nome [ Nome 1 ] e assim por diante. ]
+	]
+]
+
+[ Section ]
+~~
+[
+	/[
+		$[ [ Nome 1 ] --> [ Nome 2 ] --> [ Nome 3 ] ]$
+	]/
+
+	[ Paragraph ]
+	~~
+	[
+		[ Se há apenas um nome, retorna a idéia do neurônio referenciado por esse nome ]
+	]
+
+	[ Paragraph ]
+	~~
+	[
+		[ Se há mais de um nome, corresponde a idéia do neurônio referenciado pelo último nome. [ Nome 1 ] existe dentro do neurônio atual. [ Nome 2 ] existe dentro do neurônio com nome [ Nome 1 ] e assim por diante. ]
+	]
+]
+
+[ Section ]
+~~
+[
+	/[
+		[ Idéia ] ~~ [ [ Idéia 2 ] [ Idéia 3 ] [ Idéia 4 ] ]
+	]/
+
+	[ Paragraph ]
+	~~
+	[
+		[ Cria um neurônio com [ Idéia 1 ] e põe ele na stack. Os neurônios criados dentro do enclausuramento que segue o /[ ~~ ]/ serão automaticamente conectados a ele ]
+	]
+]
+
+[ Section ]
+~~
+[
+	/[
+		![ Comando ]! <-- [ [ Entrada 1 ] [ Entrada 2 ] ]
+	]/
+
+	[ Paragraph ]
+	~~
+	[
+		[ Executa o comando [ Comando ] com as entradas definidas no enclausuramento seguinte ]
+	]
+]
+

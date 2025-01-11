@@ -1,0 +1,19 @@
+++ [ Title ] ~~ [ Classe Parser ]
+
+++ [ Paragraph ]
+~~
+:[
+	++ [ Runa é um símbolo com algum significado para o parser. Cada runa é representada por uma hash com uma entrada [ :name ] que indica o nome da runa e uma entrada [ :type ], que pode ser [ operator ] ou [ container ] ]
+]:
+
+[ Section ]
+~~
+[
+	[ Title ] ~~ |[ Parser.go_to_next_rune() ]|
+
+	[ Paragraph ]
+	~~
+	[
+		|[ Move a variável [ @current_postion ] para o primeiro caractere da próxima runa ]|
+	]
+]

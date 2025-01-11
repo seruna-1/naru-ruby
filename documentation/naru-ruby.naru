@@ -1,0 +1,76 @@
+#[ Title ] --> +[ Naru ruby parser ]
+
++ [ Paragraph ]
+:[
+	+ [ Um parser de naru escrito em ruby ]
+]:
+
++ [ Paragraph ]
+:[
+	+ [ A classe [ Neuron ] é usada para representar um neurônio. Todo neurônio está em uma classe [ Brain ], que representa uma coleção de neurônios. Sempre que um neurônio é criado, ele é adicionado à lista de neurônios de um cérebro ]
+]:
+
++ [ Paragraph ]
+:[
+	+ [ Um neurônio é criado pelo método [ Brain.insert_neuron() ], que recebe como entrada o caminho para o neurônio existente ao qual o novo neurônio será conectado e, opcionalmente, uma lista de nomes para serem atribuidos ao neurônio inserido. Caso a criação tenha ocorrido sem problemas, o método retorna o nome padrão do neurônio criado. Caso o caminho passado como entrada seja inválido, o método retorna [ nil ] ]
+]:
+
++ [ Paragraph ]
+:[
+	+ [  ]
+]:
+
++ [ Paragraph ]
+:[
+	+ [ O caminho para um neurônio consiste numa sequência de nomes que levam a um neurônio. O caminho pode ter o formato de uma array de [ String ] ou de uma [ String ] na qual cada nome está cercado de colchetes. O método [ Brain.follow_path() ] recebe um caminho, segue ele e retorna o neurônio ao qual ele leva ]
+]:
+
++ [ Paragraph ]
+:[
+	+ [ O método [ Parser.parse() ] transforma a string [ @recipe ] em um cérebro com uma rede de neurônios. Esse método é um loop que executa o método [ Parse.consume() ] para consumir uma runa e , enquando ele não retorna [ false ] ]
+]:
+
++ [ Paragraph ]
+:[
+	+ [ O método [ Parse.consume() ] verifica o que está na posição atual. Se for uma runa, ela é consumida. Isso significa aumentar a posição para o caractere que vem após a runa e modificar a pilha de operações, se necessário ]
+]:
+
++ [ Paragraph ]
+~
+:[
+	+ [ Cada operação é uma hash com as chaves [ :"name" ], [ :"status" ], [ :"operands" ] ]
+]:
+
++ [ Paragraph ]
+~
+:[
+	+ [ Além das chaves padrão, a operação [ get text ] contém a chave [ :"end of content" ], que indica a posição em que não há mais conteúdo de texto ]
+]:
+
++ [ Paragraph ]
+~
+:[
+	+ [ A operação [ get text ] deve ser aberta e fechada na mesma linha. Se um caractere de nova linha é encontrado após um colchete simples que foi aberto e não foi fechado, a operação se torna [ get lines ] ]
+]:
+
++ [ Paragraph ]
+~
+:[
+	+ [ A operação [ get lines ] é iniciada por [ [\n ] e terminada por [ ] ]. Essa operação é similar à operação [ get text ], mas, aqui, o colchete de abertura é seguido por um caractere de nova linha. O resultado dessa operação é a concatenação dos operandos. Cada operando é adicionado pela operação [ get line ], que é começada por [ | ] e terminada por [ \n ] ou começada por [ [ ] e terminada por [ ] ]. Em ambos os casos, as runas de começo e de fim devem estar na mesma linha ]
+]:
+
++ [ Paragraph ]
+~
+:[
+	+ [ A operação [ name assignment ] é iniciada pela runa [ # ]. Ela associa uma série de nomes a um neurônio, no contexto do neurônio atual. Isso é feito pelo método [ Brain.assign_names( names, path_from, path_to ) ], em que [ names ] é uma lista de nomes, [ path_from ] é o caminho para o neurônio atual e [ path_to ] é o caminho para o neurônio que será conectado ao atual, cuja conexão receberá a lista de nomes. Se já houver essa conexão, os nomes apenas serão adicionaods a ela ]
+]:
+
++ [ Paragraph ]
+:[
+	+ [ A operação [ connect ] é simbolizada pela runa [ ~ ]. Ela toma dois caminhos, um de cada lado da runa. O neurônio referenciado pelo segundo caminho é conectado àquele referenciado pelo primeiro caminho. Essa operação retorna o nome padrão do segundo neurônio em relação ao primeiro ]
+]:
+
++ [ Paragraph ]
+:[
+	+ [ A operação [ insert ] é simbolizada pela runa [ + ]. Caso ela ocorra sobre uma operação [ connect ] que já tenha um caminho como operando, um neurônio é inserido no namespace do neurônio associado a esse caminho. Caso contrário, um neurônio é inserido no namespace atual ]
+]:
