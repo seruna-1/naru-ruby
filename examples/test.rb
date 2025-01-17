@@ -1,4 +1,4 @@
-require_relative "naru.rb"
+require_relative "../naru.rb"
 
 parser = Parser.new( File.read( "test.naru" ) )
 
