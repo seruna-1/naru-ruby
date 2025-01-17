@@ -2,9 +2,13 @@ require_relative "extensions.rb"
 
 require_relative "Operation.rb"
 
+require_relative "Consumer.rb"
+
 require_relative "Neuron.rb"
 
 require_relative "Brain.rb"
+
+require "rexml/document"
 
 class Parser
 
@@ -18,7 +22,7 @@ class Parser
 
 	end
 
-	def parse()
+	def parse( verbosity: true )
 
 		@brain = Brain.new()
 
@@ -34,237 +38,178 @@ class Parser
 
 		while @consumer.consume() == true
 
-			puts @consumer.message + "-----------"
+			if ( verbosity == true ) then ( puts @consumer.message ) end
 
 			while @operations.last.operate() == true
 
-				puts "hello"
+				if ( verbosity == true ) then ( puts @operations.last.message ) end
 
-				puts @operations.last.message
+				if ( @operations.last.result != nil )
 
-				if @operations.last.result != nil
-
-					@operations[-2].operands << @operations.last.result
+					@operations.at( -2 ).operands.append( @operations.last.result )
 
 				end
 
 				@operations.pop()
 
-				puts "Pushed #{@operations[-1].operands}"
-
 			end
 
-			if @operations.last.status == :"error"
-
-				return nil
-
-			end
+			if ( @operations.last.status == :"error" ) then ( return nil ) end
 
 		end
 
-		if @consumer.status == :error
-
-			return nil
-
-		end
-
-		return @brain
+		if ( @consumer.status == :error ) then ( return nil ) else ( return @brain ) end
 
 	end
 
 end
 
-class Consumer
+class REXML::Formatters::Pretty
 
-	attr_accessor :position
+	def write_text( node, output )
 
-	attr_reader :status, :message
+		s = node.to_s()
 
-	def initialize( parser )
+		s.gsub!(/\s/,' ')
 
-		@parser = parser
+		s.squeeze!(" ")
 
-		@status = nil
+		s = wrap(s, @width - @level)
 
-		@message = nil
+		s = indent_text(s, @level, "\t", true)
 
-		@runes = [ :"\n", :"+", :"[", :"]", :"~", :":[", :"]:", :"at", :"-->", :"#" ]
+		output << ("\t"*@level + s)
 
-		@position = Hash[ :"absolute", 0, :"line", 0, :"column", 0 ]
+      end
 
-		@rune = nil
+      protected
+      def write_element(node, output)
+        output << "\t"*@level
+        output << "<#{node.expanded_name}"
+
+        node.attributes.each_attribute do |attr|
+          output << " "
+          attr.write( output )
+        end unless node.attributes.empty?
+
+        if node.children.empty?
+          if @ie_hack
+            output << " "
+          end
+          output << "/"
+        else
+          output << ">"
+          # If compact and all children are text, and if the formatted output
+          # is less than the specified width, then try to print everything on
+          # one line
+          skip = false
+          if compact
+            if node.children.inject(true) {|s,c| s & c.kind_of?(Text)}
+              string = +""
+              old_level = @level
+              @level = 0
+              node.children.each { |child| write( child, string ) }
+              @level = old_level
+              if string.length < @width
+                output << string
+                skip = true
+              end
+            end
+          end
+          unless skip
+            output << "\n" * 2
+            @level += @indentation
+            node.children.each { |child|
+#              next if child.kind_of?(Text) and child.to_s.strip.length == 0
+              write( child, output )
+              output << "\n" * 2
+            }
+            @level -= @indentation
+            output << "\t"*@level
+          end
+          output << "</#{node.expanded_name}"
+        end
+        output << ">"
+      end
+
+      def write_cdata( node, output)
+        output << "\t" * @level
+        super
+      end
+
+end
+
+class NaruToHtml
+
+	attr_accessor :html
+
+	def initialize( brain )
+
+		@brain = brain
+
+		@html_out = nil
+
+		@html_dom = nil
 
 	end
 
-	def emit_error( message )
+	def convert()
 
-		@status = :"error"
+		neurons = [ @brain.azimuth ]
 
-		@message << "Error on #{@position}.\n" + message
+		names = [ 0 ]
 
-		return false
+		@html_dom = REXML::Document.new( "<html></html>" )
 
-	end
+		html_elements = [ @html_dom.root ]
 
-	def consume()
+		while ( names.size > 0 )
 
-		@rune = nil
+			neuron = @brain.follow_name( neurons.last, names.last )
 
-		@message = String.new()
+			names[-1] += 1
 
-		@message << "Consuption started at #{@position.inspect()}.\n With operations #{@parser.operations.inspect()}\n"
+			if ( neuron == nil )
 
-		while @position[ :"absolute" ] < @parser.recipe.size
+				neurons.pop()
 
-			@rune = @parser.recipe.which_rune_at( @runes, @position[ :"absolute" ] )
+				names.pop()
 
-			if @rune == nil
-
-				@position[ :"absolute" ] += 1
-
-				@position[ :"column" ] += 1
+				html_elements.pop()
 
 				next
 
-			else
+			end
 
-				@position[ :"absolute" ] += @rune.size
+			if ( neuron.idea == "Paragraph" )
 
-				@position[ :"column" ] += @rune.size
+				element = html_elements.last.add_element( "p" )
 
-				@message << "Then obtained rune #{@rune.inspect()} and got to position #{@position.inspect()}.\n"
+				neurons << neuron
 
-				break
+				names << 0
+
+				html_elements << element
+
+			elsif ( neurons[-1].idea == "Paragraph" )
+
+				puts "Neuron idea #{neuron.idea}"
+
+				puts html_elements.inspect()
+
+				puts neuron.inspect()
+
+				puts names.inspect()
+
+				element = html_elements.last.add_element( "span" )
+
+				element.add_text( neuron.idea )
 
 			end
 
 		end
 
-		if @position[ :"absolute" ] >= @parser.recipe.size
-
-			return false
-
-		end
-
-		case @rune
-
-		when :"\n"
-
-			if @parser.operations.last.name == :"get text"
-
-#				@parser.operations.last = GetLines.new( @parser )
-
-			else
-
-				@position[ :"column" ] = 0
-
-				@position[ :"line" ] += 1
-
-			end
-
-		when :"+"
-
-			@parser.operations << NeuronInsertion.new( @parser )
-
-		when :"-->"
-
-			if @parser.operations.last.name != :"name assignment"
-
-				return self.emit_error( "Found operator [ --> ] on operation [ #{ @parser.operations.last.name } ], but it should be on a operation [name assignment], in order to mark the end of name addition, so the operation would only wait to a neuron path in order to be operated.\n" )
-
-			else
-
-				@parser.operations.last.names_got = @parser.operations.last.operands.size
-
-			end
-
-		when :"~"
-
-			if @parser.operations.last.name != :"block"
-
-				return self.emit_error( "Found operator [ ~ ], namely [ connect ]. It should use the operands of a block operation as names to get a neuron, push it to @neuron_stack and clear operands, but last operation is not a block.\n" )
-
-			else
-
-				@parser.operations << ConnectNeurons.new( @parser )
-
-				puts "From #{@parser.operations.inspect()}"
-
-				path = @parser.operations[-2].operands.pop()
-
-				@parser.operations.last.operands << path
-
-				puts "Got #{path}"
-
-			end
-
-		when :"["
-
-			if @parser.operations.last.name != :"get text"
-
-				@parser.operations << GetText.new( @parser )
-
-				start_of_content = @position[ :"absolute" ].to_s()
-
-				@parser.operations.last.operands << start_of_content
-
-			end
-
-		when :"]"
-
-			if @parser.operations.last.name == :"get text"
-
-				end_of_content = @position[ :"absolute" ] - @rune.size - 1
-
-				end_of_content = end_of_content.to_s()
-
-				@parser.operations.last.operands << end_of_content
-
-			end
-
-		when :":["
-
-			if @parser.operations.last.name != :"block"
-
-				return self.emit_error( "Found opener [ :[ ], it should take the last operand of a block, transform the path in string form to array form, concatenate this array to @path and create a new operation [ block ], but last operation is not a block.\n" )
-
-			else
-
-				@parser.operations << OperationBlock.new( @parser )
-
-				@parser.operations.last.operands << @parser.operations[-2].operands.pop()
-
-			end
-
-		when :"]:"
-
-			if @parser.operations.last.name != :"block"
-
-				return self.emit_error( "Found closer [ \]: ], it should close a block, but last operation is not a block.\n" )
-
-			else
-
-				@parser.operations.last.status = :"ready"
-
-			end
-
-		when :"#"
-
-			if @parser.operations.last.name != :"block"
-
-				return self.emit_error( "Name assignment must run on block.\n" )
-
-			elsif @parser.operations.last.name != :"name assignment" 
-
-				@parser.operations << NameAssignment.new( @parser )
-
-			end
-
-		end
-
-		@message << "Consuption ended with operations #{@parser.operations.inspect()}\n"
-
-		return true
+		@html_dom.write({indent: 1})
 
 	end
 

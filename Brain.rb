@@ -12,11 +12,15 @@ class Brain
 
 	def follow_name( neuron, name )
 
-		destination = nil
+		connection = nil
 
-		if name.is_number? == true
+		if name.is_a?( Integer )
 
-			destination = neuron.connections[name.to_i()][ :"neuron" ]
+			connection = neuron.connections[name]
+
+		elsif name.is_number? == true
+
+			connection = neuron.connections[name.to_i()]
 
 		else
 
@@ -24,7 +28,7 @@ class Brain
 
 				if connection[ :"names" ].include?( name )
 
-					destination = connection[ :"neuron" ]
+					return connection[ :"neuron" ]
 
 				end
 	
@@ -32,7 +36,15 @@ class Brain
 
 		end
 
-		return destination
+		if connection == nil
+
+			return nil
+
+		else
+
+			return connection[ :"neuron" ]
+
+		end
 
 	end
 
